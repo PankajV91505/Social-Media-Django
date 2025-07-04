@@ -5,37 +5,52 @@ export const PostList = createContext({
   addPost: () => {},
   addInitialPosts: () => {},
   deletePost: () => {},
+  updatePost: () => {},
 });
 
 const postListReducer = (currPostList, action) => {
-  let newPostList = currPostList;
-  if (action.type === "DELETE_POST") {
-    newPostList = currPostList.filter(
-      (post) => post.id !== action.payload.postId
-    );
-  } else if (action.type === "ADD_INITIAL_POSTS") {
-    newPostList = action.payload.posts;
-  } else if (action.type === "ADD_POST") {
-    newPostList = [action.payload, ...currPostList];
+  switch (action.type) {
+    case "DELETE_POST":
+      return currPostList.filter((post) => post.id !== action.payload.postId);
+    case "ADD_INITIAL_POSTS":
+      return action.payload.posts;
+    case "ADD_POST":
+      return [action.payload, ...currPostList];
+    case "UPDATE_POST":
+      return currPostList.map((post) =>
+        post.id === action.payload.id ? action.payload : post
+      );
+    default:
+      return currPostList;
   }
-  return newPostList;
 };
 
 const PostListProvider = ({ children }) => {
   const [postList, dispatchPostList] = useReducer(postListReducer, []);
 
-  const addPost = (userId, postTitle, postBody, reactions, tags) => {
-    dispatchPostList({
-      type: "ADD_POST",
-      payload: {
-        id: Date.now(),
-        title: postTitle,
-        body: postBody,
-        reactions: reactions,
-        userId: userId,
-        tags: tags,
-      },
-    });
+  const addPost = async (userId, postTitle, postBody, reactions, tags) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/posts/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: postTitle,
+          body: postBody,
+          reactions: reactions || 0,
+          tags: tags,
+          user: userId,
+        }),
+      });
+      const newPost = await response.json();
+      dispatchPostList({
+        type: "ADD_POST",
+        payload: newPost,
+      });
+    } catch (error) {
+      console.error("Error adding post:", error);
+    }
   };
 
   const addInitialPosts = (posts) => {
@@ -47,18 +62,46 @@ const PostListProvider = ({ children }) => {
     });
   };
 
-  const deletePost = (postId) => {
-    dispatchPostList({
-      type: "DELETE_POST",
-      payload: {
-        postId,
-      },
-    });
+  const deletePost = async (postId) => {
+    try {
+      await fetch(`http://localhost:8000/api/posts/${postId}/`, {
+        method: "DELETE",
+      });
+      dispatchPostList({
+        type: "DELETE_POST",
+        payload: {
+          postId,
+        },
+      });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
+
+  const updatePost = async (postId, updatedData) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/posts/${postId}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
+      const updatedPost = await response.json();
+      dispatchPostList({
+        type: "UPDATE_POST",
+        payload: updatedPost,
+      });
+      return true;
+    } catch (error) {
+      console.error("Error updating post:", error);
+      return false;
+    }
   };
 
   return (
     <PostList.Provider
-      value={{ postList, addPost, addInitialPosts, deletePost }}
+      value={{ postList, addPost, addInitialPosts, deletePost, updatePost }}
     >
       {children}
     </PostList.Provider>
