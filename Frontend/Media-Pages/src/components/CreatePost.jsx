@@ -9,29 +9,46 @@ const CreatePost = () => {
   const tagsRef = useRef();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
-  // Add this function to get CSRF token
+  // Function to get CSRF token from cookies
   const getCSRFToken = () => {
-    return document.cookie
+    const cookieValue = document.cookie
       .split('; ')
       .find(row => row.startsWith('csrftoken='))
       ?.split('=')[1];
+    return cookieValue || '';
   };
 
-  // REPLACE YOUR EXISTING handleSubmit WITH THIS:
+  // Function to ensure CSRF token is set
+  const ensureCSRFToken = async () => {
+    try {
+      await fetch("http://localhost:8000/api/csrf/", {
+        method: 'GET',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error("Failed to set CSRF token:", err);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setSuccess(false);
 
     try {
+      // First ensure we have a CSRF token
+      await ensureCSRFToken();
+
       const response = await fetch("http://localhost:8000/api/posts/", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': getCSRFToken(),
         },
-        credentials: 'include',
+        credentials: 'include', // Important for session/cookies
         body: JSON.stringify({
           title: titleRef.current.value,
           body: bodyRef.current.value,
@@ -40,21 +57,25 @@ const CreatePost = () => {
         }),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create post');
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || 
+          errorData.message || 
+          `Failed to create post (Status: ${response.status})`
+        );
       }
 
-      // Make sure your addPost function matches these parameters
+      const data = await response.json();
       addPost(data.id, data.title, data.body, data.reactions, data.tags);
       
-      // Reset form
+      // Reset form and show success
       titleRef.current.value = "";
       bodyRef.current.value = "";
       reactionsRef.current.value = "";
       tagsRef.current.value = "";
-
+      setSuccess(true);
+      
     } catch (err) {
       setError(err.message);
       console.error("Post creation error:", err);
@@ -67,13 +88,18 @@ const CreatePost = () => {
     <div className="create-post-container">
       <h2>Create New Post</h2>
       
-      {/* ADD THIS ERROR DISPLAY */}
       {error && (
         <div className="alert alert-danger mb-3">
-          {error}
+          <strong>Error:</strong> {error}
         </div>
       )}
       
+      {success && (
+        <div className="alert alert-success mb-3">
+          Post created successfully!
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="title" className="form-label">Post Title</label>
@@ -83,6 +109,7 @@ const CreatePost = () => {
             className="form-control"
             id="title"
             required
+            minLength="3"
           />
         </div>
 
@@ -94,6 +121,7 @@ const CreatePost = () => {
             id="body"
             rows="4"
             required
+            minLength="10"
           />
         </div>
 
@@ -116,7 +144,7 @@ const CreatePost = () => {
             ref={tagsRef}
             className="form-control"
             id="tags"
-            placeholder="Enter tags separated by spaces"
+            placeholder="Enter tags separated by spaces (e.g., tech django)"
           />
         </div>
 
@@ -125,7 +153,14 @@ const CreatePost = () => {
           className="btn btn-primary"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Creating...' : 'Create Post'}
+          {isSubmitting ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Creating...
+            </>
+          ) : (
+            'Create Post'
+          )}
         </button>
       </form>
     </div>
