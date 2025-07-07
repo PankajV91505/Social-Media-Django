@@ -11,27 +11,6 @@ const CreatePost = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // Function to get CSRF token from cookies
-  const getCSRFToken = () => {
-    const cookieValue = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrftoken='))
-      ?.split('=')[1];
-    return cookieValue || '';
-  };
-
-  // Function to ensure CSRF token is set
-  const ensureCSRFToken = async () => {
-    try {
-      await fetch("http://localhost:8000/api/csrf/", {
-        method: 'GET',
-        credentials: 'include'
-      });
-    } catch (err) {
-      console.error("Failed to set CSRF token:", err);
-    }
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -39,37 +18,14 @@ const CreatePost = () => {
     setSuccess(false);
 
     try {
-      // First ensure we have a CSRF token
-      await ensureCSRFToken();
-
-      const response = await fetch("http://localhost:8000/api/posts/", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken(),
-        },
-        credentials: 'include', // Important for session/cookies
-        body: JSON.stringify({
-          title: titleRef.current.value,
-          body: bodyRef.current.value,
-          reactions: reactionsRef.current.value || 0,
-          tags: tagsRef.current.value.split(" ").filter(tag => tag.trim() !== ""),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.detail || 
-          errorData.message || 
-          `Failed to create post (Status: ${response.status})`
-        );
-      }
-
-      const data = await response.json();
-      addPost(data.id, data.title, data.body, data.reactions, data.tags);
+      await addPost(
+        titleRef.current.value,
+        bodyRef.current.value,
+        reactionsRef.current.value || 0,
+        tagsRef.current.value.split(" ").filter(tag => tag.trim() !== "")
+      );
       
-      // Reset form and show success
+      // Reset form
       titleRef.current.value = "";
       bodyRef.current.value = "";
       reactionsRef.current.value = "";
@@ -78,7 +34,6 @@ const CreatePost = () => {
       
     } catch (err) {
       setError(err.message);
-      console.error("Post creation error:", err);
     } finally {
       setIsSubmitting(false);
     }

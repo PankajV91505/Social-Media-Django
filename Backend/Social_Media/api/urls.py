@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import csrf_view, post_list  # Make sure these match your view functions
+from .views import csrf_view, post_list, post_detail  # Make sure these match your view functions
 
 urlpatterns = [
     path('csrf/', csrf_view, name='csrf'),
     path('posts/', post_list, name='post-list'),
+    path('posts/<int:pk>/', post_detail, name='post-detail'), 
 ]
 
 # urls.py
