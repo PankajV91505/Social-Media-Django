@@ -19,7 +19,7 @@ const postListReducer = (currPostList, action) => {
     case "ADD_INITIAL_POSTS":
       return action.payload.posts;
     case "ADD_POST":
-      return [action.payload.post, ...currPostList];
+      return [action.payload.post, ...currPostList];  // ✅ add to top
     case "UPDATE_POST":
       return currPostList.map((post) =>
         post.id === action.payload.post.id ? action.payload.post : post
@@ -39,7 +39,7 @@ const PostListProvider = ({ children }) => {
     localStorage.setItem('username', newUsername);
     setToken(newToken);
     setUsername(newUsername);
-    console.log('Logged in with token:', newToken); // ✅ Debug: Verify token saving
+    console.log('✅ Logged in:', newUsername);
   };
 
   const logout = () => {
@@ -65,25 +65,28 @@ const PostListProvider = ({ children }) => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create post');
+      if (!response.ok) throw new Error('❌ Failed to create post');
 
       const newPost = await response.json();
+
       dispatchPostList({
         type: "ADD_POST",
-        payload: { post: newPost },
+        payload: { post: newPost },  // ✅ Push new post into list
       });
-      return newPost;
+
+      return newPost;  // ✅ So calling component can navigate or show toast
     } catch (error) {
-      console.error("Error adding post:", error.message);
+      console.error("❌ Error adding post:", error.message);
       throw error;
     }
   };
 
   const addInitialPosts = (posts) => {
     if (!Array.isArray(posts)) {
-      console.error("addInitialPosts expected an array but got:", posts);
+      console.error("❌ addInitialPosts expected an array, got:", posts);
       return;
     }
+
     dispatchPostList({
       type: "ADD_INITIAL_POSTS",
       payload: { posts },
@@ -99,14 +102,14 @@ const PostListProvider = ({ children }) => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to delete post');
+      if (!response.ok) throw new Error('❌ Failed to delete post');
 
       dispatchPostList({
         type: "DELETE_POST",
         payload: { postId },
       });
     } catch (error) {
-      console.error("Error deleting post:", {
+      console.error("❌ Error deleting post:", {
         error: error.message,
         postId
       });
@@ -118,9 +121,9 @@ const PostListProvider = ({ children }) => {
     try {
       const formattedData = {
         ...updatedData,
-        tags: Array.isArray(updatedData.tags) ? 
-              updatedData.tags : 
-              updatedData.tags.split(' ').filter(tag => tag.trim() !== '')
+        tags: Array.isArray(updatedData.tags)
+          ? updatedData.tags
+          : updatedData.tags.split(' ').filter(tag => tag.trim() !== '')
       };
 
       const response = await fetch(`http://localhost:8000/api/posts/${postId}/`, {
@@ -132,7 +135,7 @@ const PostListProvider = ({ children }) => {
         body: JSON.stringify(formattedData),
       });
 
-      if (!response.ok) throw new Error('Failed to update post');
+      if (!response.ok) throw new Error('❌ Failed to update post');
 
       const updatedPost = await response.json();
 
@@ -143,7 +146,7 @@ const PostListProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error("Update post error:", {
+      console.error("❌ Update post error:", {
         error: error.message,
         postId,
         updatedData
@@ -154,16 +157,16 @@ const PostListProvider = ({ children }) => {
 
   return (
     <PostList.Provider
-      value={{ 
-        postList, 
-        addPost, 
-        addInitialPosts, 
-        deletePost, 
-        updatePost, 
-        token, 
-        username, 
-        login, 
-        logout 
+      value={{
+        postList,
+        addPost,
+        addInitialPosts,
+        deletePost,
+        updatePost,
+        token,
+        username,
+        login,
+        logout,
       }}
     >
       {children}

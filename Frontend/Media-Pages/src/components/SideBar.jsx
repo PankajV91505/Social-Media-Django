@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { PostList } from "../store/Post-list-store1";
 
 const Sidebar = ({ selectedTab, setSelectedTab }) => {
-  const { username, logout } = useContext(PostList);
+  useContext(PostList);
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
+  // const handleSignOut = () => {
+  //   logout();
+  //   navigate("/login");
+  // };
 
   return (
     <div className="sidebar d-flex flex-column flex-shrink-0 p-3 bg-dark text-white">
@@ -52,7 +52,7 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
         </li>
       </ul>
       <hr />
-      <div className="dropdown">
+      {/* <div className="dropdown">
         <a
           href="#"
           className="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
@@ -86,7 +86,7 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
             </button>
           </li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

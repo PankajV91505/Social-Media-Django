@@ -1,11 +1,12 @@
 import { useContext, useState, useEffect } from "react";
 import { AiFillEdit } from "react-icons/ai";
-import { TiDelete } from "react-icons/ti";
+import { RiDeleteBin6Line } from "react-icons/ri"; // ✅ Modern delete icon
 import { PostList as PostListContext } from "../store/Post-list-store1";
 
 const Post = ({ post }) => {
   const { deletePost, updatePost, username } = useContext(PostListContext);
   const [isEditing, setIsEditing] = useState(false);
+  const [showFullBody, setShowFullBody] = useState(false);
   const [editedPost, setEditedPost] = useState({
     title: post.title,
     body: post.body,
@@ -68,11 +69,18 @@ const Post = ({ post }) => {
     }
   };
 
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      deletePost(post.id);
+    }
+  };
+
   const isOwner = post.username === username;
 
   return (
     <div className="card post-card mb-4">
       <div className="card-body">
+
         {isEditing ? (
           <>
             {error && <div className="alert alert-danger mb-3">{error}</div>}
@@ -113,7 +121,7 @@ const Post = ({ post }) => {
                   className="form-control"
                   value={editedPost.tags}
                   onChange={(e) => setEditedPost({ ...editedPost, tags: e.target.value })}
-                  placeholder="tech react django"
+                  placeholder="e.g. react js django"
                 />
               </div>
             </div>
@@ -144,39 +152,32 @@ const Post = ({ post }) => {
           </>
         ) : (
           <>
-            <div className="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 className="card-title">{post.title}</h5>
-                <p className="text-muted mb-2">
-                  Posted by <strong>{post.username || "Unknown"}</strong>
-                </p>
-              </div>
-              {isOwner && (
-                <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => setIsEditing(true)}
-                    title="Edit post"
-                  >
-                    <AiFillEdit />
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => {
-                      if (window.confirm("Delete this post?")) {
-                        deletePost(post.id);
-                      }
-                    }}
-                    title="Delete post"
-                  >
-                    <TiDelete />
-                  </button>
-                </div>
+            {/* ✅ Title */}
+            <h5 className="card-title">{post.title}</h5>
+
+            {/* ✅ Username */}
+            <p className="text-muted mb-2">
+              Posted by <strong>{post.username || "Unknown"}</strong>
+            </p>
+
+            {/* ✅ Content with Read More */}
+            <p className="card-text my-3">
+              {showFullBody || post.body.length <= 100
+                ? post.body
+                : post.body.slice(0, 100) + '... '}
+              {post.body.length > 100 && !showFullBody && (
+                <button className="btn btn-link p-0" onClick={() => setShowFullBody(true)}>
+                  Read more
+                </button>
               )}
-            </div>
+            </p>
 
-            <p className="card-text my-3">{post.body}</p>
+            {/* ✅ Date/Time */}
+            <small className="text-muted d-block mb-2">
+              {new Date(post.updated_at || post.created_at).toLocaleString()}
+            </small>
 
+            {/* ✅ Tags */}
             <div className="d-flex flex-wrap gap-2 mb-2">
               {(Array.isArray(post.tags)
                 ? post.tags
@@ -188,13 +189,30 @@ const Post = ({ post }) => {
               ))}
             </div>
 
+            {/* ✅ Reactions and Buttons */}
             <div className="d-flex justify-content-between align-items-center">
-              <small className="text-muted">
-                {new Date(post.created_at).toLocaleString()}
-              </small>
               <span className="badge bg-success">
                 {post.reactions} reactions
               </span>
+
+              {isOwner && (
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => setIsEditing(true)}
+                    title="Edit post"
+                  >
+                    <AiFillEdit />
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={handleDelete}
+                    title="Delete post"
+                  >
+                    <RiDeleteBin6Line />
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}

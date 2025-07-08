@@ -1,4 +1,5 @@
 import { useContext, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PostList } from "../store/Post-list-store1";
 
 const CreatePost = () => {
@@ -7,6 +8,8 @@ const CreatePost = () => {
   const bodyRef = useRef();
   const reactionsRef = useRef();
   const tagsRef = useRef();
+  const navigate = useNavigate();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -24,14 +27,12 @@ const CreatePost = () => {
         reactionsRef.current.value || 0,
         tagsRef.current.value.split(" ").filter(tag => tag.trim() !== "")
       );
-      
-      // Reset form
-      titleRef.current.value = "";
-      bodyRef.current.value = "";
-      reactionsRef.current.value = "";
-      tagsRef.current.value = "";
+
       setSuccess(true);
-      
+
+      // ✅ Wait 2 seconds, then navigate to home
+      setTimeout(() => navigate("/"), 1000);
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,16 +43,16 @@ const CreatePost = () => {
   return (
     <div className="create-post-container">
       <h2>Create New Post</h2>
-      
+
       {error && (
         <div className="alert alert-danger mb-3">
           <strong>Error:</strong> {error}
         </div>
       )}
-      
+
       {success && (
         <div className="alert alert-success mb-3">
-          Post created successfully!
+          Post created successfully! Redirecting to home...
         </div>
       )}
 
@@ -99,12 +100,12 @@ const CreatePost = () => {
             ref={tagsRef}
             className="form-control"
             id="tags"
-            placeholder="Enter tags separated by spaces (e.g., tech django)"
+            placeholder="Enter tags separated by spaces (e.g., react js django)"
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="btn btn-primary"
           disabled={isSubmitting}
         >

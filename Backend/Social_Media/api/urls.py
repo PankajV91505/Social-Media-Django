@@ -1,4 +1,6 @@
 from django.urls import path
+from .views import get_csrf_token
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -14,4 +16,6 @@ urlpatterns = [
     # Post routes
     path('posts/', post_list, name='post-list'),
     path('posts/<int:pk>/', post_detail, name='post-detail'),
+    
+    path('csrf/', get_csrf_token),
 ]
