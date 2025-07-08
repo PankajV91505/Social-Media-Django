@@ -1,6 +1,17 @@
-import { FaHome, FaPlus, FaUser } from "react-icons/fa";
+import { FaHome, FaPlus } from "react-icons/fa";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { PostList } from "../store/Post-list-store1";
 
 const Sidebar = ({ selectedTab, setSelectedTab }) => {
+  const { username, logout } = useContext(PostList);
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <div className="sidebar d-flex flex-column flex-shrink-0 p-3 bg-dark text-white">
       <a
@@ -13,8 +24,13 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
       <ul className="nav nav-pills flex-column mb-auto">
         <li className="nav-item">
           <button
-            className={`nav-link text-white ${selectedTab === "Home" && "active"}`}
-            onClick={() => setSelectedTab("Home")}
+            className={`nav-link text-white ${
+              selectedTab === "Home" && "active"
+            }`}
+            onClick={() => {
+              setSelectedTab("Home");
+              navigate("/");
+            }}
           >
             <FaHome className="me-2" />
             Home
@@ -22,8 +38,13 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
         </li>
         <li>
           <button
-            className={`nav-link text-white ${selectedTab === "Create Post" && "active"}`}
-            onClick={() => setSelectedTab("Create Post")}
+            className={`nav-link text-white ${
+              selectedTab === "Create Post" && "active"
+            }`}
+            onClick={() => {
+              setSelectedTab("Create Post");
+              navigate("/create");
+            }}
           >
             <FaPlus className="me-2" />
             Create Post
@@ -39,13 +60,15 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
           aria-expanded="false"
         >
           <img
-            src="https://ui-avatars.com/api/?name=User&background=random"
+            src={`https://ui-avatars.com/api/?name=${
+              username || "User"
+            }&background=random`}
             alt="User"
             width="32"
             height="32"
             className="rounded-circle me-2"
           />
-          <strong>User</strong>
+          <strong>{username || "User"}</strong>
         </a>
         <ul className="dropdown-menu dropdown-menu-dark text-small shadow">
           <li>
@@ -58,7 +81,9 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
             <hr className="dropdown-divider" />
           </li>
           <li>
-            <button className="dropdown-item">Sign out</button>
+            <button className="dropdown-item" onClick={handleSignOut}>
+              Sign out
+            </button>
           </li>
         </ul>
       </div>

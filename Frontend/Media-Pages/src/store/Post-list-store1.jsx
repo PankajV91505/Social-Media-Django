@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, useState } from "react";
 
 export const PostList = createContext({
   postList: [],
@@ -6,6 +6,10 @@ export const PostList = createContext({
   addInitialPosts: () => {},
   deletePost: () => {},
   updatePost: () => {},
+  token: null,
+  username: null,
+  login: () => {},
+  logout: () => {},
 });
 
 const postListReducer = (currPostList, action) => {
@@ -27,42 +31,32 @@ const postListReducer = (currPostList, action) => {
 
 const PostListProvider = ({ children }) => {
   const [postList, dispatchPostList] = useReducer(postListReducer, []);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [username, setUsername] = useState(localStorage.getItem('username'));
 
-  const getCsrfToken = async () => {
-    try {
-      // First ensure we have a CSRF token
-      await fetch("http://localhost:8000/api/csrf/", {
-        method: 'GET',
-        credentials: 'include'
-      });
+  const login = (newToken, newUsername) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('username', newUsername);
+    setToken(newToken);
+    setUsername(newUsername);
+    console.log('Logged in with token:', newToken); // ✅ Debug: Verify token saving
+  };
 
-      const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
-      if (!csrfToken) {
-        throw new Error('CSRF token not found');
-      }
-
-      return csrfToken;
-    } catch (error) {
-      console.error("Error getting CSRF token:", error);
-      throw error;
-    }
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setToken(null);
+    setUsername(null);
   };
 
   const addPost = async (postTitle, postBody, reactions, tags) => {
     try {
-      const csrfToken = await getCsrfToken();
-
       const response = await fetch("http://localhost:8000/api/posts/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify({
           title: postTitle,
           body: postBody,
@@ -70,11 +64,8 @@ const PostListProvider = ({ children }) => {
           tags: Array.isArray(tags) ? tags : tags.split(' ').filter(tag => tag.trim() !== ''),
         }),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to create post');
-      }
+
+      if (!response.ok) throw new Error('Failed to create post');
 
       const newPost = await response.json();
       dispatchPostList({
@@ -83,13 +74,7 @@ const PostListProvider = ({ children }) => {
       });
       return newPost;
     } catch (error) {
-      console.error("Error adding post:", {
-        error: error.message,
-        postTitle,
-        postBody,
-        reactions,
-        tags
-      });
+      console.error("Error adding post:", error.message);
       throw error;
     }
   };
@@ -107,20 +92,14 @@ const PostListProvider = ({ children }) => {
 
   const deletePost = async (postId) => {
     try {
-      const csrfToken = await getCsrfToken();
-
       const response = await fetch(`http://localhost:8000/api/posts/${postId}/`, {
         method: "DELETE",
         headers: {
-          "X-CSRFToken": csrfToken,
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: 'include'
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to delete post');
-      }
+      if (!response.ok) throw new Error('Failed to delete post');
 
       dispatchPostList({
         type: "DELETE_POST",
@@ -137,9 +116,6 @@ const PostListProvider = ({ children }) => {
 
   const updatePost = async (postId, updatedData) => {
     try {
-      const csrfToken = await getCsrfToken();
-
-      // Ensure tags are properly formatted
       const formattedData = {
         ...updatedData,
         tags: Array.isArray(updatedData.tags) ? 
@@ -151,23 +127,15 @@ const PostListProvider = ({ children }) => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify(formattedData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Update failed with response:", {
-          status: response.status,
-          errorData
-        });
-        throw new Error(errorData.message || `Update failed with status ${response.status}`);
-      }
+      if (!response.ok) throw new Error('Failed to update post');
 
       const updatedPost = await response.json();
-      
+
       dispatchPostList({
         type: "UPDATE_POST",
         payload: { post: updatedPost },
@@ -191,7 +159,11 @@ const PostListProvider = ({ children }) => {
         addPost, 
         addInitialPosts, 
         deletePost, 
-        updatePost 
+        updatePost, 
+        token, 
+        username, 
+        login, 
+        logout 
       }}
     >
       {children}

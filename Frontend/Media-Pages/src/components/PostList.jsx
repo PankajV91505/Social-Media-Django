@@ -1,47 +1,57 @@
 import { useContext, useEffect, useState } from 'react';
 import { PostList as PostListContext } from '../store/Post-list-store1';
 import Post from './Post';
+import { useNavigate } from 'react-router-dom';
 
 const PostList = () => {
-  const { postList, addInitialPosts } = useContext(PostListContext);
+  const { postList, addInitialPosts, token } = useContext(PostListContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [needsAuth, setNeedsAuth] = useState(false);
+  const navigate = useNavigate();
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
       setError(null);
-      setNeedsAuth(false);
-      
+
       const response = await fetch('http://localhost:8000/api/posts/', {
-        credentials: 'include'
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
-      
+
       if (response.status === 401 || response.status === 403) {
-        setNeedsAuth(true);
         throw new Error('Please login to view posts');
       }
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch posts (Status: ${response.status})`);
       }
 
       const data = await response.json();
       const posts = Array.isArray(data) ? data : data.data || [];
-      addInitialPosts(posts);
-      
+      addInitialPosts(posts);  // ✅ Add posts to context
+
     } catch (err) {
       setError(err.message);
       console.error('Fetch posts error:', err);
+
+      if (err.message.includes('login')) {
+        setTimeout(() => navigate('/login'), 1500);
+      }
+
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (token) {
+      fetchPosts();
+    }
+  }, [token]);
 
   if (loading) return (
     <div className="text-center my-4">
@@ -53,21 +63,14 @@ const PostList = () => {
 
   if (error) return (
     <div className="container my-4">
-      <div className={`alert ${needsAuth ? 'alert-warning' : 'alert-danger'}`}>
-        {error}
-        {needsAuth && (
-          <a href="/login" className="btn btn-sm btn-primary ms-3">
-            Login
-          </a>
-        )}
-        {!needsAuth && (
-          <button 
-            onClick={fetchPosts}
-            className="btn btn-sm btn-outline-secondary ms-3"
-          >
-            Retry
-          </button>
-        )}
+      <div className="alert alert-warning d-flex justify-content-between align-items-center">
+        <span>{error}</span>
+        <button
+          onClick={fetchPosts}
+          className="btn btn-sm btn-outline-secondary"
+        >
+          Retry
+        </button>
       </div>
     </div>
   );
@@ -75,7 +78,7 @@ const PostList = () => {
   return (
     <div className="container my-4">
       <h2 className="mb-4">Recent Posts ({postList.length})</h2>
-      
+
       {postList.length === 0 ? (
         <div className="alert alert-info">
           No posts available

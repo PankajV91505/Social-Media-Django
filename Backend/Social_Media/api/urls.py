@@ -1,16 +1,17 @@
 from django.urls import path
-from .views import csrf_view, post_list, post_detail  # Make sure these match your view functions
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from .views import register_user, post_list, post_detail
 
 urlpatterns = [
-    path('csrf/', csrf_view, name='csrf'),
+    # Authentication routes
+    path('register/', register_user, name='register'),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Post routes
     path('posts/', post_list, name='post-list'),
-    path('posts/<int:pk>/', post_detail, name='post-detail'), 
+    path('posts/<int:pk>/', post_detail, name='post-detail'),
 ]
-
-# urls.py
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.http import JsonResponse
-
-@ensure_csrf_cookie
-def get_csrf_token(request):
-    return JsonResponse({'detail': 'CSRF cookie set'})
