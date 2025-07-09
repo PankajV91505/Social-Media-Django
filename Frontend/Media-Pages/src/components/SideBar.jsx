@@ -1,31 +1,24 @@
 import { FaHome, FaPlus } from "react-icons/fa";
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { PostList } from "../store/Post-list-store1";
 
 const Sidebar = ({ selectedTab, setSelectedTab }) => {
-  useContext(PostList);
   const navigate = useNavigate();
 
-  // const handleSignOut = () => {
-  //   logout();
-  //   navigate("/login");
-  // };
-
   return (
-    <div className="sidebar d-flex flex-column flex-shrink-0 p-3 bg-dark text-white">
+    <div className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white h-100" style={{ width: "220px" }}>
       <a
         href="/"
-        className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
+        className="d-flex align-items-center mb-3 text-white text-decoration-none"
       >
-        <span className="fs-4">Blog App</span>
+        <span className="fs-4 fw-bold">📘 Blog App</span>
       </a>
-      <hr />
+      <hr className="border-light" />
+      
       <ul className="nav nav-pills flex-column mb-auto">
         <li className="nav-item">
           <button
-            className={`nav-link text-white ${
-              selectedTab === "Home" && "active"
+            className={`nav-link d-flex align-items-center text-start text-white ${
+              selectedTab === "Home" ? "bg-primary" : ""
             }`}
             onClick={() => {
               setSelectedTab("Home");
@@ -36,10 +29,11 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
             Home
           </button>
         </li>
-        <li>
+
+        <li className="mt-2">
           <button
-            className={`nav-link text-white ${
-              selectedTab === "Create Post" && "active"
+            className={`nav-link d-flex align-items-center text-start text-white ${
+              selectedTab === "Create Post" ? "bg-primary" : ""
             }`}
             onClick={() => {
               setSelectedTab("Create Post");
@@ -51,42 +45,12 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
           </button>
         </li>
       </ul>
-      <hr />
-      {/* <div className="dropdown">
-        <a
-          href="#"
-          className="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <img
-            src={`https://ui-avatars.com/api/?name=${
-              username || "User"
-            }&background=random`}
-            alt="User"
-            width="32"
-            height="32"
-            className="rounded-circle me-2"
-          />
-          <strong>{username || "User"}</strong>
-        </a>
-        <ul className="dropdown-menu dropdown-menu-dark text-small shadow">
-          <li>
-            <button className="dropdown-item">Settings</button>
-          </li>
-          <li>
-            <button className="dropdown-item">Profile</button>
-          </li>
-          <li>
-            <hr className="dropdown-divider" />
-          </li>
-          <li>
-            <button className="dropdown-item" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </li>
-        </ul>
-      </div> */}
+
+      <hr className="border-light mt-auto" />
+
+      <div className="text-center small text-muted">
+        &copy; {new Date().getFullYear()} SocialApp
+      </div>
     </div>
   );
 };

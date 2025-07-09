@@ -8,28 +8,55 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
-    <header className="p-3 text-bg-dark">
-      <div className="container d-flex justify-content-between align-items-center">
-        <a href="/" className="text-white text-decoration-none">My App</a>
-        <div className="text-end">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div className="container-fluid">
+        <a className="navbar-brand fw-bold" href="/">
+          🚀 SocialApp
+        </a>
+
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarMain"
+          aria-controls="navbarMain"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon" />
+        </button>
+
+        <div className="collapse navbar-collapse justify-content-end" id="navbarMain">
           {token ? (
-            <>
-              <span className="text-white me-3">Welcome, {username}</span>
-              <button onClick={handleLogout} className="btn btn-outline-light me-2">Logout</button>
-            </>
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-white">👋 {username}</span>
+              <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
           ) : (
-            <>
-              <button onClick={() => navigate('/login')} className="btn btn-outline-light me-2">Login</button>
-              <button onClick={() => navigate('/signup')} className="btn btn-warning">Sign-up</button>
-            </>
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-outline-light btn-sm"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
+              <button
+                className="btn btn-warning btn-sm"
+                onClick={() => navigate("/signup")}
+              >
+                Sign Up
+              </button>
+            </div>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

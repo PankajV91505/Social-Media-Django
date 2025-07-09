@@ -17,24 +17,36 @@ function App() {
   return (
     <PostListProvider>
       <Router>
-        <Header />
-        <div className="app-container">
-          <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-          <div className="content">
-            <Routes>
-              <Route path="/" element={<ProtectedRoute><PostList /></ProtectedRoute>} />
-              <Route path="/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-            </Routes>
+        <div className="d-flex flex-column min-vh-100">
+          <Header />
+
+          <div className="container-fluid flex-grow-1">
+            <div className="row">
+              {/* Sidebar */}
+              <div className="col-md-3 col-lg-2 border-end p-0 bg-light">
+                <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+              </div>
+
+              {/* Main Content */}
+              <div className="col-md-9 col-lg-10 px-4 py-4">
+                <Routes>
+                  <Route path="/" element={<ProtectedRoute><PostList /></ProtectedRoute>} />
+                  <Route path="/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                </Routes>
+              </div>
+            </div>
           </div>
+
+          <Footer />
         </div>
-        <Footer />
       </Router>
     </PostListProvider>
   );
 }
 
+// ✅ ProtectedRoute
 const ProtectedRoute = ({ children }) => {
   const { token } = useContext(PostListContext);
   return token ? children : <Navigate to="/login" />;
