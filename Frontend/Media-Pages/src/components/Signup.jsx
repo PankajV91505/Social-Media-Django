@@ -1,86 +1,133 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Lazy load OtpForm
+const OtpForm = lazy(() => import("./OtpForm"));
+
 const Signup = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    password2: "",
+  });
+  const [otpStep, setOtpStep] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [info, setInfo] = useState(null);
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
-    setSuccess(false);
+    setInfo(null);
+
+    if (form.password !== form.password2) {
+      setError("Passwords do not match.");
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:8000/api/register/", {
+      const res = await fetch("http://localhost:8000/api/request-signup/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        credentials: "include",
+        body: JSON.stringify(form),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || "Registration failed");
-      }
+      const data = await res.json();
 
-      setSuccess(true);
-      setTimeout(() => navigate("/login"), 2000); // Redirect to login after 2s
+      if (res.ok) {
+        setOtpStep(true);
+        setInfo("OTP has been sent to your email.");
+      } else {
+        setError(data.detail || data.error || "Signup failed");
+      }
     } catch (err) {
-      setError(err.message);
+      setError("Network error. Please try again.");
     }
   };
 
   return (
     <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-      <div className="card shadow-lg p-4" style={{ maxWidth: "400px", width: "100%" }}>
-        <h3 className="text-center mb-3 text-primary">📝 Sign Up</h3>
+      <div className="card p-4 shadow border-0" style={{ width: "100%", maxWidth: "500px" }}>
+        <h3 className="text-center text-primary mb-4">Sign Up</h3>
 
         {error && <div className="alert alert-danger text-center">{error}</div>}
-        {success && (
-          <div className="alert alert-success text-center">
-            Registered successfully! Redirecting...
-          </div>
-        )}
+        {info && <div className="alert alert-success text-center">{info}</div>}
 
-        <form onSubmit={handleSignup}>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Username</label>
-            <input
-              type="text"
-              className="form-control rounded-pill"
-              placeholder="Enter username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-            />
-          </div>
+        {!otpStep ? (
+          <form onSubmit={handleSignup}>
+            <div className="mb-3">
+              <input
+                type="text"
+                name="first_name"
+                className="form-control"
+                placeholder="First Name"
+                value={form.first_name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <input
+                type="text"
+                name="last_name"
+                className="form-control"
+                placeholder="Last Name"
+                value={form.last_name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <input
+                type="email"
+                name="email"
+                className="form-control"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <input
+                type="password"
+                name="password"
+                className="form-control"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+              />
+            </div>
+            <div className="mb-3">
+              <input
+                type="password"
+                name="password2"
+                className="form-control"
+                placeholder="Confirm Password"
+                value={form.password2}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-          <div className="mb-4">
-            <label className="form-label fw-semibold">Password</label>
-            <input
-              type="password"
-              className="form-control rounded-pill"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-
-          <div className="d-grid">
-            <button type="submit" className="btn btn-success rounded-pill">
-              Sign Up
+            <button type="submit" className="btn btn-primary w-100">
+              Send OTP to Email
             </button>
-          </div>
-
-          <p className="text-center mt-3 small">
-            Already have an account? <a href="/login">Login</a>
-          </p>
-        </form>
+          </form>
+        ) : (
+          <Suspense fallback={<div className="text-center">Loading OTP Form...</div>}>
+            <OtpForm email={form.email} />
+          </Suspense>
+        )}
       </div>
     </div>
   );

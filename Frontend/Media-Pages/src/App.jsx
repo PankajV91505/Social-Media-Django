@@ -7,6 +7,7 @@ import CreatePost from "./components/CreatePost";
 import PostList from "./components/PostList";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import OtpForm from "./components/OtpForm";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useContext, useState } from 'react';
 import PostListProvider, { PostList as PostListContext } from "./store/Post-list-store1";

@@ -87,16 +87,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Social_Media.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 # Database settings
 DATABASES = {
     'default': {
@@ -216,3 +206,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+
+
+AUTH_USER_MODEL = 'api.CustomUser'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_PORT = 2525
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'b7bbe7bece7b01'
+EMAIL_HOST_PASSWORD = 'cba2bbcff4271d'
