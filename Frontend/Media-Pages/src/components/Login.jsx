@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { PostList } from "../store/Post-list-store1";
 
 const Login = () => {
@@ -27,7 +27,6 @@ const Login = () => {
         return;
       }
 
-      // Save token & username
       login(data.access, email);
       navigate("/");
 
@@ -38,18 +37,23 @@ const Login = () => {
 
   return (
     <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-      <div className="card p-4 shadow" style={{ width: "100%", maxWidth: "400px" }}>
-        <h3 className="text-center text-primary mb-4">🔐 Login</h3>
+      <div className="card shadow p-4" style={{ width: "100%", maxWidth: "400px" }}>
+        <h3 className="text-center text-primary mb-4">🔐 Login to Your Account</h3>
 
-        {error && <div className="alert alert-danger text-center">{error}</div>}
+        {error && (
+          <div className="alert alert-danger text-center" role="alert">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className="mb-3">
-            <label className="form-label fw-semibold">Email</label>
+            <label htmlFor="email" className="form-label fw-semibold">Email address</label>
             <input
               type="email"
               className="form-control rounded-pill"
-              placeholder="Enter email"
+              id="email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -57,16 +61,25 @@ const Login = () => {
             />
           </div>
 
-          <div className="mb-4">
-            <label className="form-label fw-semibold">Password</label>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label fw-semibold">Password</label>
             <input
               type="password"
               className="form-control rounded-pill"
-              placeholder="Enter password"
+              id="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <small>
+              <Link to="/forgot-password" className="text-decoration-none">
+                Forgot password?
+              </Link>
+            </small>
           </div>
 
           <div className="d-grid">
@@ -74,11 +87,16 @@ const Login = () => {
               Login
             </button>
           </div>
-
-          <p className="text-center mt-3 small">
-            Don't have an account? <a href="/signup">Sign up</a>
-          </p>
         </form>
+
+        <div className="text-center mt-4">
+          <small>
+            Don’t have an account?{" "}
+            <Link to="/signup" className="text-decoration-none fw-semibold text-primary">
+              Sign up
+            </Link>
+          </small>
+        </div>
       </div>
     </div>
   );

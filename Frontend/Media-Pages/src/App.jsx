@@ -1,5 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Sidebar from "./components/SideBar";
@@ -8,8 +9,11 @@ import PostList from "./components/PostList";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import OtpForm from "./components/OtpForm";
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useContext, useState } from 'react';
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword"; // ✅ new
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useContext, useState } from "react";
 import PostListProvider, { PostList as PostListContext } from "./store/Post-list-store1";
 
 function App() {
@@ -35,6 +39,9 @@ function App() {
                   <Route path="/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
+                  <Route path="/verify-otp" element={<OtpForm />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                 </Routes>
               </div>
             </div>
@@ -47,7 +54,7 @@ function App() {
   );
 }
 
-// ✅ ProtectedRoute
+// ✅ Protect routes behind authentication
 const ProtectedRoute = ({ children }) => {
   const { token } = useContext(PostListContext);
   return token ? children : <Navigate to="/login" />;
